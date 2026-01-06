@@ -1,0 +1,155 @@
+<! DOCUMENT html>
+<html>
+<style>
+body{margin:0;font-family:Arial;background:#f2f4f7}
+header{background:#0d1b2a;color:#fff;padding:15px;text-align:center}
+nav{background:#111;display:flex;flex-wrap:wrap;justify-content:center}
+nav button{background:none;border:none;color:#fff;padding:12px;cursor:pointer}
+nav button:hover{background:#e63946}
+.container{max-width:1100px;margin:auto;padding:15px}
+.news{background:#fff;margin-bottom:15px;border-radius:6px;overflow:hidden}
+.news img{width:100%;height:200px;object-fit:cover}
+.news .c{padding:12px}
+.news h3{margin:0}
+small{color:#777}
+.admin, .login{background:#fff;padding:15px;margin-top:20px;display:none}
+input,textarea{width:100%;padding:8px;margin-bottom:8px}
+button{padding:8px 12px}
+.comment{font-size:14px;border-top:1px solid #eee;padding:6px}
+</style>
+ <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+    function toggleLogin() {
+  const loginBox = document.getElementById("login");
+  const adminBox = document.getElementById("admin");
+
+  if (loginBox.style.display === "block") {
+    loginBox.style.display = "none";
+  } else {
+    loginBox.style.display = "block";
+    adminBox.style.display = "none";
+  }
+}
+  const firebaseConfig = {
+    apiKey: "AIzaSyDpo8zP47v7rz3ha9VZL5OWwLXRiaiWd9E",
+    authDomain: "news-website-4ee67.firebaseapp.com",
+    projectId: "news-website-4ee67",
+    storageBucket: "news-website-4ee67.appspot.com",
+    messagingSenderId: "4572749590",
+    appId: "1:4572749590:web:81a5d54e33258be9dd7a37"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+</script></head>
+
+<body>
+
+<header>
+<h1>📰 Naija Global News</h1>
+<p>Real news. Real people.</p>
+</header>
+
+<nav>
+<button onclick="loadAll()">Home</button>
+<button onclick="filter('Nigeria')">Nigeria</button>
+<button onclick="filter('Sports')">Sports</button>
+<button onclick="filter('Politics')">Politics</button>
+<button onclick="filter('Tech')">Tech</button>
+<button onclick="toggleLogin()">Admin</button>
+</nav>
+
+<div class="container">
+
+<div id="news"></div>
+
+<!-- LOGIN -->
+<div class="login" id="login">
+<h3>Admin Login</h3>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+</div>
+
+<!-- ADMIN -->
+<div class="admin" id="admin">
+<h3>Publish News</h3>
+<input id="title" placeholder="Title">
+<input id="image" placeholder="Image URL">
+<input id="category" placeholder="Category">
+<textarea id="content" placeholder="Content"></textarea>
+<button onclick="postNews()">Publish</button>
+</div>
+
+</div>
+
+<script>
+// 🔥 FIREBASE CONFIG (REPLACE WITH YOURS)
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// AUTH
+function toggleLogin(){
+  document.getElementById("login").style.display="block";
+}
+
+function login(){
+  auth.signInWithEmailAndPassword(email.value,password.value)
+  .then(()=>{
+    login.style.display="none";
+    admin.style.display="block";
+  }).catch(e=>alert(e.message));
+}
+
+// POST NEWS
+function postNews(){
+  db.collection("news").add({
+    title:title.value,
+    image:image.value,
+    category:category.value,
+    content:content.value,
+    time:new Date(),
+    likes:0
+  });
+}
+
+// LOAD NEWS
+function loadAll(){
+  db.collection("news").orderBy("time","desc").onSnapshot(snap=>{
+    news.innerHTML="";
+    snap.forEach(doc=>{
+      const d=doc.data();
+      news.innerHTML+=`
+      <div class="news">
+        <img src="${d.image||'https://via.placeholder.com/400'}">
+        <div class="c">
+          <h3>${d.title}</h3>
+          <small>${d.category} • ${d.time.toDate().toDateString()}</small>
+          <p>${d.content}</p>
+          <button onclick="like('${doc.id}',${d.likes})">❤️ ${d.likes}</button>
+        </div>
+      </div>`;
+    });
+  });
+}
+
+function like(id,count){
+  db.collection("news").doc(id).update({likes:count+1});
+}
+
+loadAll();
+</script>
+
+</body>
+</html>
